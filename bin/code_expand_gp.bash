@@ -14,8 +14,8 @@ local f=$1
 x=$(echo $f | perl -p -e's/\..*//')
 echo "$x - $f"
 
-#CODE_EXPAND=/mnt/Data/tools/code_rewrite/code_expand.py
-CODE_EXPAND=/mnt/Data/tools/code_rewrite.stable/code_expand.py
+CODE_EXPAND=/mnt/Data/tools/code_rewrite/code_expand.py
+#CODE_EXPAND=/mnt/Data/tools/code_rewrite.stable/code_expand.py
 
 if [[ ! -d $cb ]]; then
     echo "ERROR: It does not look like you're in a GenProg run directory for $cb"
