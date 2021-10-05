@@ -89,13 +89,16 @@ class dependencies:
         print('"filenames":[')
         for i,ik in enumerate(k):
             #print(f"[DEBUG] {ik}")
+            iik=f"{srcdir}/{ik}" if srcdir else ik
             if ik not in kl:
-                print("{"+f'"name":"{ik}"'+"}",end='')
+                print("{"+f'"name":"{iik}"'+"}",end='')
                 pass
             else:
                 e=self.hier[ik]['file']
+                iik=f"{srcdir}/{e}" if srcdir else e
                 p=self.hier[ik]['parent']
-                print("{"+f'"name":"{e}","included_by":{p}'+"}",end='')
+                ip=[f"{srcdir}/{x}" for x in p] if srcdir else p
+                print("{"+f'"name":"{iik}","included_by":{ip}'+"}",end='')
             if i!=end:
                 print(",")
         print(']')
