@@ -179,9 +179,11 @@ for ityp in ga brute_force; do
 	x=0
 	echo "find $incdir $srcdir/$cb/lib -type f -name \"*.c\" "
 	for i in $(find $incdir $srcdir/$cb/lib -type f -name "*.c" ) ; do
+	    if (( $(echo $i | egrep -c -w 'libpov')==0 )); then 
 		if (( $x > 0 )); then echo -e "," >> $cb.json; fi
 		echo -ne "   {\"name\":\"$i\"}" >> $cb.json
 		x=1
+	    fi
 	done
 	echo -e "" >> $cb.json
 	echo -e "]," >> $cb.json
