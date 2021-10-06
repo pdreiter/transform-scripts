@@ -86,22 +86,24 @@ class dependencies:
         k=self.order
         kl=list(self.hier.keys())
         end=len(k)
-        print('"filenames":[')
+        istr='"DEPEND_VERSION":"1.0.1",\n"filenames":['
         for i,ik in enumerate(k):
             #print(f"[DEBUG] {ik}")
             iik=f"{srcdir}/{ik}" if srcdir else ik
             if ik not in kl:
-                print("{"+f'"name":"{iik}"'+"}",end='')
+                istr+="{"+f'"name":"{iik}"'+"}"
                 pass
             else:
                 e=self.hier[ik]['file']
                 iik=f"{srcdir}/{e}" if srcdir else e
                 p=self.hier[ik]['parent']
                 ip=[f"{srcdir}/{x}" for x in p] if srcdir else p
-                print("{"+f'"name":"{iik}","included_by":{ip}'+"}",end='')
-            if i!=end:
-                print(",")
-        print(']')
+                istr+="{"+f'"name":"{iik}","included_by":{ip}'+"}"
+            if i!=end-1:
+                istr+=",\n"
+        istr+='\n]'
+        istr=re.sub("'","\"",istr)
+        print(istr,end='')
 
 
         

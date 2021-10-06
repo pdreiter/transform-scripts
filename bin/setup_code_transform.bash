@@ -102,6 +102,9 @@ for ityp in ga brute_force; do
 	
 	pushd $destdir
 	c_src=$(find $srcdir/$cb/src -type f -name "*.c" | perl -p -e"s/^$cb\///;s/\.c.*$//")
+    egrep -l PATCHED $srcdir/$cb/src/*.c | perl -p -e"s#^$srcdir/##"
+    patch_c_src=$(egrep -l PATCHED $srcdir/$cb/src/*.c )
+    echo "PATCH_C_SRC : $patch_c_src"
 	find $srcdir/$cb/src -type f -name "*.c" | perl -p -e"s/^$cb\///"  > bugged-program.txt
 	mkdir -p $idir/$cb/src
 	for i in ${c_src[*]}; do
@@ -175,18 +178,28 @@ for ityp in ga brute_force; do
 	
 	
 	echo -e "{" > $cb.json
-	echo -e "\"filenames\":[" >> $cb.json
+	#echo -e "\"filenames\":[" >> $cb.json
 	x=0
-	echo "find $incdir $srcdir/$cb/lib -type f -name \"*.c\" "
-	for i in $(find $incdir $srcdir/$cb/lib -type f -name "*.c" ) ; do
-	    if (( $(echo $i | egrep -c -w 'libpov')==0 )); then 
-		if (( $x > 0 )); then echo -e "," >> $cb.json; fi
-		echo -ne "   {\"name\":\"$i\"}" >> $cb.json
-		x=1
-	    fi
-	done
-	echo -e "" >> $cb.json
-	echo -e "]," >> $cb.json
+	#echo "find $incdir $srcdir/$cb/lib -type f -name \"*.c\" "
+	#for i in $(find $incdir $srcdir/$cb/lib -type f -name "*.c" ) ; do
+	#    if (( $(echo $i | egrep -c -w 'libpov')==0 )); then 
+	#	if (( $x > 0 )); then echo -e "," >> $cb.json; fi
+	#	echo -ne "   {\"name\":\"$i\"}" >> $cb.json
+	#	x=1
+	#    fi
+	#done
+    $scriptdir/depend.py --dependency-file $depend/$cb --src-dir $srcdir >> $cb.json
+	#echo -e "" >> $cb.json
+	#echo -e "]," >> $cb.json
+	echo -e "," >> $cb.json
+    echo -e "\"ignore\":[" >> $cb.json
+    i=0; 
+    for f in ${patch_c_src[*]}; do
+        if (( $i > 0 )); then echo -e "," >> $cb.json; fi
+        echo -ne "\"$f\"" >> $cb.json
+        (( i+=1 ))
+    done
+    echo -e "\n]," >> $cb.json
 	echo -e "\"macros\":[" >> $cb.json
 	echo -ne "   {\"name\": \"PATCHED\", \"value\": false }" >> $cb.json
 	if (( $(egrep -c "VULN_COUNT" $srcdir/$cb/CMakeLists.txt)>0 )); then 
