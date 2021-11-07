@@ -34,7 +34,10 @@ class dependencies:
         fstack=list()
         lcnt=0
         dep_type=None
+        skip=False
         for i,l in enumerate(lines):
+            if '<' in l:
+                next
             if '.c:' in l:
                 f=re.sub(':','',l).strip()
                 fstack=[f]
@@ -43,6 +46,8 @@ class dependencies:
                 if f not in self.order:
                     self.order.append(f)
                 #print(f"[found it] {fstack}")
+                if '<' in l:
+                    skip=True
                 pass
             elif '.o:' in l:
                 dep_type=2
@@ -64,21 +69,22 @@ class dependencies:
                     print("lcnt and stack should be the same size")
                     print(f"lcnt = {lcnt}; len(fstack) = {len(fstack)}")
                     import sys; sys.exit(-1)
-                self.add_file(f,fstack[-1])
-                #print(f"[added] {f} {fstack[-1]}")
-                #print(f"[updated self.hier] {self.hier}")
-                if f not in self.order:
-                    ind=self.order.index(fstack[-1])
-                    self.order.insert(ind,f)
-                else:
-                    ind1=self.order.index(f)
-                    ind2=self.order.index(fstack[-1])
-                    if ind1>ind2-1:
-                        self.order.remove(f)
+                if not skip:
+                    self.add_file(f,fstack[-1]) 
+                    #print(f"[added] {f} {fstack[-1]}")
+                    #print(f"[updated self.hier] {self.hier}")
+                    if f not in self.order:
+                        ind=self.order.index(fstack[-1])
+                        self.order.insert(ind,f)
+                    else:
+                        ind1=self.order.index(f)
                         ind2=self.order.index(fstack[-1])
-                        self.order.insert(ind2,f)
-
-                    #self.order.append(f)
+                        if ind1>ind2-1:
+                            self.order.remove(f)
+                            ind2=self.order.index(fstack[-1])
+                            self.order.insert(ind2,f)
+    
+                        #self.order.append(f)
                 fstack.append(f); lcnt+=1
         #print(f"[DONE parse self.hier] : {self.hier}")
                 
