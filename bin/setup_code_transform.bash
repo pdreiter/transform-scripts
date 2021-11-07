@@ -213,7 +213,7 @@ for ityp in ga brute_force; do
 	echo -e "]," >> $cb.json
 	x=0
 	echo -e "\"disable_eval\":[" >> $cb.json
-	for i in $(nm -C $cb/$cb | egrep -w '[tTwW]' | awk '{print $NF}'); do
+	for i in $(nm -C $cb/$cb | egrep -w '[tTwWuU]' | awk '{print $NF}'); do
 		if (( $x == 0 )); then echo -ne "   " >> $cb.json; fi
 		if (( $x > 0 )); then echo -ne "," >> $cb.json; fi
 		echo -ne "\"$i\"" >> $cb.json
