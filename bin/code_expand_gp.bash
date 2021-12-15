@@ -2,10 +2,20 @@
 
 cb=$1
 
-if [[ -z $2 ]]; then
-    f_=$(egrep -l PATCHED $cb/src/$cb/src/*.c | perl -p -e's/.*\///g')
+trnsrc=$2
+
+SRC_DIR=$CGC_CB_DIR/challenges/$cb
+
+if [[ -z $3 ]]; then
+    f_=$(egrep -l PATCHED $SRC_DIR/src/*.c | perl -p -e's/.*\///g')
 else
-    f_=( $2 )
+    f_=( $3 )
+fi
+
+[[ ! -d $trnsrc ]] && mkdir -p $trnsrc
+if [[ ! -d $trnsrc/$cb ]]; then 
+    echo "Initializing: cp -r $CGC_CB_DIR/challenges/$cb $trnsrc/i.$cb"; 
+    cp -r $CGC_CB_DIR/challenges/$cb $trnsrc/i.$cb
 fi
 
 expand() {
@@ -39,12 +49,11 @@ if [[ ! -e $CODE_EXPAND ]]; then
 fi
 
 
-mkdir -p xform
-if (( $(egrep -c 'fix_repair' $cb/src/$cb/src/$f)>0 )); then
-    cp $CGC_CB_DIR/challenges/$cb/src/$f $cb/src/$cb/src/$f
-fi
-
-cp $cb/src/$cb/src/$f xform/$f
+#mkdir -p xform
+#if (( $(egrep -c 'fix_repair' $cb/src/$cb/src/$f)>0 )); then
+#    cp $SRC_DIR/src/$f $cb/src/$cb/src/$f
+#fi
+#cp $cb/src/$cb/src/$f xform/$f
 $CODE_EXPAND -n xform/$f -f xform/t_$f -p $cb.json
 res=$?
 
@@ -57,13 +66,41 @@ fi
 
 cp xform/t_$f $cb/src/$cb/src/$f
 pushd $cb/build
-make
+make &> ../make.transform.$x.log
+ret=$?
 popd
 
+if (( $ret==0 )); then
+echo "[$cb] $f transform | PASSED recompilation"
+cp xform/t_$f $trnsrc/i.$cb/src/$f
+else
+echo "[$cb] $f transform | FAILED recompilation"
+cp xform/t_$f $trnsrc/i.$cb/src/$f.failed
+cp $SRC_DIR/src/$f $cb/src/$cb/src/$f
+fi
 cp $cb/build/$cb/$x.i preprocessed/src/$cb/src/$f
+cp $cb/build/$cb/$x.i $trnsrc/i.$cb/src/$x.i
 }
 
 
 for f in ${f_[*]}; do
+  mkdir -p xform
+  cp $SRC_DIR/src/$f xform/$f
+  #if (( $TRANSFORMED==0 )); then 
+  if [[ ! -d $trnsrc/$cb ]]; then 
+    echo "Expanding $f [$x]"
     expand $f
+  else
+    x=$(echo $f | perl -p -e's/\..*//')
+    if [[ -e $trnsrc/$cb/src/$f.failed ]]; then 
+       echo "[$cb] $f transform | FAILED recompilation";
+       cp $trnsrc/$cb/src/$f.failed xform/t_$f
+    else
+       echo "[$cb] $f transform | PASSED recompilation";
+       cp $trnsrc/$cb/src/$f xform/t_$f
+       cp $trnsrc/$cb/src/$f $cb/src/$cb/src/$f
+    fi
+    [[ -e $trnsrc/$cb/src/$x.i ]] && cp $trnsrc/$cb/src/$x.i preprocessed/src/$cb/src/$f
+  fi
 done
+[[ -d $trnsrc/i.$cb ]] && mv $trnsrc/i.$cb $trnsrc/$cb

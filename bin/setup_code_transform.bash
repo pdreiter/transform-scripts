@@ -2,6 +2,8 @@
 
 cb=$1
 d=$2
+trnsrc=$(pwd)/trans.src
+if [[ ! -d $trnsrc ]]; then mkdir -p $trnsrc ; fi
 if [[ -z $d ]]; then d=cgc_cbs; fi
 scriptdir=$(dirname -- $(realpath -- "${BASH_SOURCE[0]}"))
 if [[ -z $PRD_BASE_DIR ]]; then 
@@ -55,7 +57,7 @@ cp -r $scriptdir/CMakeLists.txt $destsrcdir/
       -DCMAKE_C_FLAGS="-H" \
       -DCMAKE_CXX_FLAGS="-H" \
 	  -DPATCHED=OFF \
-	  ../cgc_src
+	  ../cgc_src &> cfg.log
       if [[ ! -e "$depend/include.cgc" ]]; then 
       pushd include
         make cgc |& egrep -w '(^\.|\-H)' | perl -p -e'if(/.*\-c\s+(.*\.c)/){ s/.*\-c\s+(.*\.c).*/$1:/; } elsif(!/^\./){ undef $_; }; '"s#$fullpath/##g;" > $depend/include.cgc
@@ -86,7 +88,7 @@ for ityp in ga brute_force; do
 	cp -r $CGC_CB_DIR/challenges/$cb $destsrcdir/
 	cp -r $CGC_CB_DIR/include $destsrcdir/
 	cp -r $scriptdir/CMakeLists.txt $destsrcdir/
-	pushd $destbuilddir
+	pushd $destbuilddir &> /dev/null
 	  cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 	  -DCMAKE_VERBOSE_MAKEFILE=ON \
 	  -DBUILD_SHARED_LIBS=ON \
@@ -96,9 +98,11 @@ for ityp in ga brute_force; do
 	  -DCMAKE_CXX_COMPILER=g++-8 \
 	  -DBINARY=$cb \
 	  -DPATCHED=OFF \
-	  ../src
-	  make |& tee build.log
-	popd
+	  ../src &> cfg.log
+          echo "$cb | configure - completed"
+	  make &> build.log
+          echo "$cb | build - completed"
+	popd &> /dev/null
 	
 	pushd $destdir
 	c_src=$(find $srcdir/$cb/src -type f -name "*.c" | perl -p -e"s/^$cb\///;s/\.c.*$//")
@@ -167,8 +171,10 @@ for ityp in ga brute_force; do
 	-DCMAKE_CXX_COMPILER=g++-8 \
 	-DBINARY=$cb \
 	-DPATCHED=OFF \
-	../src
-	make |& tee build.log
+	../src &> cfg.log
+        echo "$cb.transform | configure - completed"
+	make &> build.log
+        echo "$cb.transform | make - completed"
 	popd > /dev/null
 	
 	for i in ${c_src[*]}; do
@@ -241,7 +247,8 @@ for ityp in ga brute_force; do
        fi
 	done
 
-	$scriptdir/code_expand_gp.bash $cb
+	echo "EXPANSION: $scriptdir/code_expand_gp.bash $cb $trnsrc"
+	$scriptdir/code_expand_gp.bash $cb $trnsrc
 	popd
 	echo "done with $transdir"
 done
