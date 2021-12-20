@@ -41,7 +41,7 @@ class dependencies:
             if '.c:' in l:
                 if '-o ' in l:
                     prev_l=l
-                    l=re.sub("-o\s*(\w+\.o)\s*","",l)
+                    l=re.sub(".*[\s'`]((([\w-]+|\.\.)/)*[\w-]+\.c:)","\g<1>",l)
                     #print(f"[info] cleaning up '{prev_l}' => '{l}'")
                 f=re.sub(':','',l).strip()
                 fstack=[f]
@@ -111,7 +111,7 @@ class dependencies:
                 e=self.hier[ik]['file']
                 iik=f"{srcdir}/{e}" if srcdir and not e.startswith('/') else e
                 p=self.hier[ik]['parent']
-                ip=[f"{srcdir}/{x}" for x in p] if srcdir and not e.startswith('/') else p
+                ip=[f"{srcdir}/{x}" if not x.startswith('/') else f"{x}" for x in p ] if srcdir else p
                 istr+="{"+f'"name":"{iik}","included_by":{ip}'+"}"
             if i!=end-1:
                 istr+=",\n"
