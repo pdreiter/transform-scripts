@@ -4,12 +4,16 @@ cb=$1
 
 trnsrc=$2
 
+json_file=$3
+
+file=$4
+
 SRC_DIR=$CGC_CB_DIR/challenges/$cb
 
-if [[ -z $3 ]]; then
+if [[ -z $file ]]; then
     f_=$(egrep -l PATCHED $SRC_DIR/src/*.c | perl -p -e's/.*\///g')
 else
-    f_=( $3 )
+    f_=( $file )
 fi
 
 [[ ! -d $trnsrc ]] && mkdir -p $trnsrc
@@ -54,12 +58,12 @@ fi
 #    cp $SRC_DIR/src/$f $cb/src/$cb/src/$f
 #fi
 #cp $cb/src/$cb/src/$f xform/$f
-$CODE_EXPAND -n xform/$f -f xform/t_$f -p $cb.json
+(time $CODE_EXPAND -n xform/$f -f xform/t_$f -p $json_file) &> xform.$x.log
 res=$?
 
 if [[ $res != 0 ]]; then
     echo "$CODE_EXPAND FAILED!"
-    echo "[command] $CODE_EXPAND -n xform/$f -f xform/t_$f -p $cb.json"
+    echo "[command] $CODE_EXPAND -n xform/$f -f xform/t_$f -p $json_file"
     echo "Exiting."
     exit -1
 fi
@@ -93,10 +97,10 @@ for f in ${f_[*]}; do
   else
     x=$(echo $f | perl -p -e's/\..*//')
     if [[ -e $trnsrc/$cb/src/$f.failed ]]; then 
-       echo "[$cb] $f transform | FAILED recompilation";
+       echo "[$cb] $f transform | FAILED recompilation (existing)";
        cp $trnsrc/$cb/src/$f.failed xform/t_$f
     else
-       echo "[$cb] $f transform | PASSED recompilation";
+       echo "[$cb] $f transform | PASSED recompilation (existing)";
        cp $trnsrc/$cb/src/$f xform/t_$f
        cp $trnsrc/$cb/src/$f $cb/src/$cb/src/$f
     fi

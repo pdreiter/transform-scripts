@@ -39,6 +39,10 @@ class dependencies:
             if '<' in l:
                 next
             if '.c:' in l:
+                if '-o ' in l:
+                    prev_l=l
+                    l=re.sub("-o\s*(\w+\.o)\s*","",l)
+                    print(f"[info] cleaning up '{prev_l}' => '{l}'")
                 f=re.sub(':','',l).strip()
                 fstack=[f]
                 lcnt=1
@@ -57,9 +61,13 @@ class dependencies:
                     print("Expecting 'gcc -H' output, not 'gcc -M -MF -' output")
                     print("Exiting.")
                     import sys; sys.exit(-1)
-                info=l.split()
-                cnt=info[0].count('.')
-                f=info[1].strip()
+                try:
+                    info=l.split()
+                    cnt=info[0].count('.')
+                    f=info[1].strip()
+                except Exception as e:
+                    print(f"[line {i}] FAIL : {l}")
+                    raise(e)
                 #print(f"[adding it] fstack:{len(fstack)} vs cnt:{cnt}")
                 while len(fstack) > cnt:
                     fstack.pop()
@@ -101,9 +109,9 @@ class dependencies:
                 pass
             else:
                 e=self.hier[ik]['file']
-                iik=f"{srcdir}/{e}" if srcdir else e
+                iik=f"{srcdir}/{e}" if srcdir and not e.startswith('/') else e
                 p=self.hier[ik]['parent']
-                ip=[f"{srcdir}/{x}" for x in p] if srcdir else p
+                ip=[f"{srcdir}/{x}" for x in p] if srcdir and not e.startswith('/') else p
                 istr+="{"+f'"name":"{iik}","included_by":{ip}'+"}"
             if i!=end-1:
                 istr+=",\n"
