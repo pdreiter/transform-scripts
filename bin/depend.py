@@ -42,7 +42,7 @@ class dependencies:
                 if '-o ' in l:
                     prev_l=l
                     l=re.sub("-o\s*(\w+\.o)\s*","",l)
-                    print(f"[info] cleaning up '{prev_l}' => '{l}'")
+                    #print(f"[info] cleaning up '{prev_l}' => '{l}'")
                 f=re.sub(':','',l).strip()
                 fstack=[f]
                 lcnt=1
