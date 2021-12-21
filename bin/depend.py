@@ -78,6 +78,9 @@ class dependencies:
                     print(f"lcnt = {lcnt}; len(fstack) = {len(fstack)}")
                     import sys; sys.exit(-1)
                 if not skip:
+                    if len(fstack)<1:
+                        print(f"WARNING! empty fstack on line {i}:'{l}'")
+                        continue
                     self.add_file(f,fstack[-1]) 
                     #print(f"[added] {f} {fstack[-1]}")
                     #print(f"[updated self.hier] {self.hier}")
