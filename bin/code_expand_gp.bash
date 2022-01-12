@@ -22,6 +22,7 @@ if [[ ! -d $trnsrc/$cb ]]; then
     cp -r $CGC_CB_DIR/challenges/$cb $trnsrc/i.$cb
 fi
 
+some_failures=0
 expand() {
 local f=$1
 
@@ -61,11 +62,13 @@ fi
 (time $CODE_EXPAND -n xform/$f -f xform/t_$f -p $json_file) &> xform.$x.log
 res=$?
 
-if [[ $res != 0 ]]; then
-    echo "$CODE_EXPAND FAILED!"
+if [[ ! -e xform/t_$f ]]; then 
+    echo "[CODE_EXPAND] $cb - $f FAILED!"
     echo "[command] $CODE_EXPAND -n xform/$f -f xform/t_$f -p $json_file"
     echo "Exiting."
     exit -1
+else
+    echo "[CODE_EXPAND] $cb - $f PASSED!"
 fi
 
 cp xform/t_$f $cb/src/$cb/src/$f
@@ -108,3 +111,4 @@ for f in ${f_[*]}; do
   fi
 done
 [[ -d $trnsrc/i.$cb ]] && mv $trnsrc/i.$cb $trnsrc/$cb
+exit 0

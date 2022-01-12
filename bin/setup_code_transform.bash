@@ -138,12 +138,14 @@ for ityp in ga brute_force; do
 	ln -sf $scriptdir/compile.pl compile.pl
 	ln -sf $builddir/$cb/pov*.pov .
 	
+	echo "Converting GenProg cfg file"
 	# converting genprog cfg file
 	num_pos=$(cat $scriptdir/cgc_test/$cb/test.sh | perl -p -e'if(/^p(\d+)\)/){ print ("$1\n"); } undef $_;' | tail -n 1)
 	num_neg=$(cat $scriptdir/cgc_test/$cb/test.sh | perl -p -e'if(/^n(\d+)\)/){ print ("$1\n"); } undef $_;' | tail -n 1)
 	cat $scriptdir/cfg-gp | perl -p -e"s/__BINARY__/$cb/g;s/__POS__/$num_pos/g;s/__NEG__/$num_neg/g;" > cfg-gp
 	x=0
 	#echo -e "#!/bin/bash \nmkdir -p logs;\ntimeout -k 24h 24h /usr/bin/genprog cfg-gp --search brute --continue &> logs/gp.brute_force.all.log" > runme.bash
+	echo "Creating runme.bash scripts"
 	echo -e "#!/bin/bash\n\nmkdir -p logs;\n" > runme.bash
 	chmod +x runme.bash
 	for i in $(ls ./test-*.sh); do
@@ -155,18 +157,27 @@ for ityp in ga brute_force; do
 	   if [ "$ityp" == "brute_force" ]; then 
 	       echo -e "/usr/bin/genprog cfg-gp-$x --search brute --continue &> logs/gp.brute_force.$x.log" >> runme.$x.bash
    	   else 
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.0.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.1.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.2.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.3.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.4.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.5.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	       echo -e "\ntimeout -k 8h 8h /usr/bin/genprog cfg-gp-$x &> logs/gp.ga.$x.6.log" >> runme.$x.bash
+               echo -e "\nfor x in \$(ls -d xform/t_*.c); do y=\$(echo \$x | sed 's#xform/t_##'); cp \$x $cb/src/$cb/src/\$y; done" >> runme.$x.bash
 	   fi
 	   chmod +x runme.$x.bash
 	   echo -e "./runme.$x.bash" >> runme.bash
 	done
 	
+	echo "Sanity check for $cb.base"
 	
         $rootdir/sanity.bash $cb/$cb &> sanity.log
         ret=$?
@@ -278,6 +289,12 @@ for ityp in ga brute_force; do
 
 	echo "EXPANSION: $scriptdir/code_expand_gp.bash $cb $trnsrc $cb.json"
 	$scriptdir/code_expand_gp.bash $cb $trnsrc $cb.json
+        ret=$?
+        if (( $ret != 0 )); then
+        echo "$cb.transform.$ityp | CODE_EXPANSION returned $ret [FAILED]"
+        else
+        echo "$cb.transform.$ityp | CODE_EXPANSION returned $ret [PASSED]"
+        fi
         ENABLE_FIXES=1 $rootdir/sanity.bash $cb/$cb &> sanity.log
         ret=$?
         if (( $ret != 0 )); then
